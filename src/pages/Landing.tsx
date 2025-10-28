@@ -20,6 +20,10 @@ function Landing() {
     navigate(`/game/${newGameCode}`);
   };
 
+  const handleCreateAIGame = () => {
+    navigate('/game/ai');
+  };
+
   const handleJoinGame = () => {
     if (gameCode.length === 6) {
       navigate(`/game/${gameCode.toUpperCase()}`);
@@ -41,6 +45,13 @@ function Landing() {
             className="w-full bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
             Create New Game
+          </button>
+
+          <button
+            onClick={handleCreateAIGame}
+            className="w-full bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            Play vs AI
           </button>
 
           {!showJoinInput ? (

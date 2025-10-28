@@ -185,11 +185,11 @@ export class ChineseChessEngine {
     }
   }
 
-  isValidMove(from: Position, to: Position): boolean {
+  isValidMove(from: Position, to: Position, player: Player = this.currentPlayer): boolean {
     if (!this.isInBounds(to.x, to.y)) return false;
 
     const piece = this.board[from.y][from.x];
-    if (!piece || piece.player !== this.currentPlayer) return false;
+    if (!piece || piece.player !== player) return false;
 
     const targetPiece = this.board[to.y][to.x];
     if (targetPiece && targetPiece.player === piece.player) return false;
@@ -243,8 +243,8 @@ export class ChineseChessEngine {
     this.moveHistory.push({
       from,
       to,
-      piece,
-      captured: captured || undefined
+      piece: { ...piece },
+      captured: captured ? { ...captured } : undefined
     });
 
     // Switch player
@@ -253,17 +253,38 @@ export class ChineseChessEngine {
     return true;
   }
 
+  undoLastMove(): void {
+    const lastMove = this.moveHistory.pop();
+    if (!lastMove) return;
+
+    const { from, to, piece, captured } = lastMove;
+
+    this.board[from.y][from.x] = { ...piece, x: from.x, y: from.y };
+    if (captured) {
+      this.board[to.y][to.x] = { ...captured, x: captured.x, y: captured.y };
+    } else {
+      this.board[to.y][to.x] = null;
+    }
+
+    this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
+  }
+
   getPiece(x: number, y: number): Piece | null {
     if (!this.isInBounds(x, y)) return null;
     return this.board[y][x];
   }
 
-  getValidMoves(x: number, y: number): Position[] {
+  getValidMoves(x: number, y: number, player: Player = this.currentPlayer): Position[] {
     const validMoves: Position[] = [];
+    const piece = this.board[y][x];
+
+    if (!piece || piece.player !== player) {
+      return validMoves;
+    }
 
     for (let toY = 0; toY < 10; toY++) {
       for (let toX = 0; toX < 9; toX++) {
-        if (this.isValidMove({ x, y }, { x: toX, y: toY })) {
+        if (this.isValidMove({ x, y }, { x: toX, y: toY }, player)) {
           validMoves.push({ x: toX, y: toY });
         }
       }
@@ -290,5 +311,29 @@ export class ChineseChessEngine {
     if (!blackGeneral) return { over: true, winner: 'red' };
 
     return { over: false };
+  }
+
+  getAllMovesForPlayer(player: Player): Move[] {
+    const moves: Move[] = [];
+
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 9; x++) {
+        const piece = this.board[y][x];
+        if (piece && piece.player === player) {
+          const validMoves = this.getValidMoves(x, y, player);
+          for (const move of validMoves) {
+            const captured = this.board[move.y][move.x];
+            moves.push({
+              from: { x, y },
+              to: move,
+              piece: { ...piece },
+              captured: captured ? { ...captured } : undefined
+            });
+          }
+        }
+      }
+    }
+
+    return moves;
   }
 }
