@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ChineseChessEngine } from '../engine/ChineseChess';
 import type { Position, Player } from '../engine/ChineseChess';
+import { ChineseChessAI } from '../engine/ChineseChessAI';
 
 interface GameState {
   engine: ChineseChessEngine;
@@ -8,13 +9,17 @@ interface GameState {
   validMoves: Position[];
   gameId: string | null;
   playerColor: Player | null;
+  aiEnabled: boolean;
 
   selectPiece: (x: number, y: number) => void;
   movePiece: (to: Position) => void;
   resetGame: () => void;
   setGameId: (id: string) => void;
-  setPlayerColor: (color: Player) => void;
+  setPlayerColor: (color: Player | null) => void;
+  setAiEnabled: (enabled: boolean) => void;
 }
+
+const ai = new ChineseChessAI();
 
 export const useGameStore = create<GameState>((set, get) => ({
   engine: new ChineseChessEngine(),
@@ -22,6 +27,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   validMoves: [],
   gameId: null,
   playerColor: null,
+  aiEnabled: false,
 
   selectPiece: (x: number, y: number) => {
     const { engine, playerColor } = get();
@@ -40,7 +46,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   movePiece: (to: Position) => {
-    const { engine, selectedPiece } = get();
+    const { engine, selectedPiece, aiEnabled } = get();
 
     if (!selectedPiece) return;
 
@@ -52,6 +58,19 @@ export const useGameStore = create<GameState>((set, get) => ({
         validMoves: [],
         engine: engine // Trigger re-render by setting the same instance
       });
+
+      if (aiEnabled && !engine.isGameOver().over && engine.currentPlayer === 'black') {
+        setTimeout(() => {
+          const { engine: currentEngine } = get();
+          const aiMove = ai.findBestMove(currentEngine, 'black');
+          if (aiMove) {
+            const moved = currentEngine.makeMove(aiMove.from, aiMove.to);
+            if (moved) {
+              set({ engine: currentEngine });
+            }
+          }
+        }, 150);
+      }
     }
   },
 
@@ -67,7 +86,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ gameId: id });
   },
 
-  setPlayerColor: (color: Player) => {
+  setPlayerColor: (color: Player | null) => {
     set({ playerColor: color });
+  },
+
+  setAiEnabled: (enabled: boolean) => {
+    set({ aiEnabled: enabled });
   },
 }));

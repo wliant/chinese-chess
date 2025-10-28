@@ -6,18 +6,35 @@ import GameBoard from '../components/GameBoard';
 function Game() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
-  const { engine, setGameId, resetGame } = useGameStore();
+  const {
+    engine,
+    setGameId,
+    resetGame,
+    setAiEnabled,
+    setPlayerColor,
+    aiEnabled,
+    gameId: activeGameId
+  } = useGameStore();
   const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     if (gameId) {
-      setGameId(gameId);
+      if (gameId.toLowerCase() === 'ai') {
+        setGameId('AI GAME');
+        setAiEnabled(true);
+        setPlayerColor('red');
+      } else {
+        setGameId(gameId);
+        setAiEnabled(false);
+        setPlayerColor(null);
+      }
     }
-  }, [gameId, setGameId]);
+  }, [gameId, setGameId, setAiEnabled, setPlayerColor]);
 
   const handleCopyCode = async () => {
-    if (gameId) {
-      await navigator.clipboard.writeText(gameId);
+    if (aiEnabled) return;
+    if (activeGameId) {
+      await navigator.clipboard.writeText(activeGameId);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
     }
@@ -37,18 +54,26 @@ function Game() {
       {/* Game info overlay */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/20 pointer-events-auto">
-          <div className="text-white">
-            <div className="text-sm opacity-80 mb-1">Game Code</div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold tracking-wider">{gameId}</span>
-              <button
-                onClick={handleCopyCode}
-                className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-sm"
-              >
-                {copiedCode ? '✓ Copied!' : 'Copy'}
-              </button>
+          {aiEnabled ? (
+            <div className="text-white">
+              <div className="text-sm opacity-80 mb-1">Game Mode</div>
+              <div className="text-2xl font-bold tracking-wider">AI Opponent</div>
+              <div className="text-sm text-white/70 mt-1">You are playing as Red.</div>
             </div>
-          </div>
+          ) : (
+            <div className="text-white">
+              <div className="text-sm opacity-80 mb-1">Game Code</div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold tracking-wider">{activeGameId}</span>
+                <button
+                  onClick={handleCopyCode}
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-sm"
+                >
+                  {copiedCode ? '✓ Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/20 pointer-events-auto">
