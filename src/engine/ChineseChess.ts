@@ -195,11 +195,12 @@ export class ChineseChessEngine {
     if (targetPiece && targetPiece.player === piece.player) return false;
 
     switch (piece.type) {
-      case 'general':
+      case 'general': {
         const dx = Math.abs(to.x - from.x);
         const dy = Math.abs(to.y - from.y);
         return ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) &&
                this.isInPalace(to.x, to.y, piece.player);
+      }
 
       case 'advisor':
         return Math.abs(to.x - from.x) === 1 &&

@@ -9,6 +9,7 @@ interface GameState {
   validMoves: Position[];
   gameId: string | null;
   playerColor: Player | null;
+  version: number; // Version counter to force re-renders
   aiEnabled: boolean;
 
   selectPiece: (x: number, y: number) => void;
@@ -27,6 +28,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   validMoves: [],
   gameId: null,
   playerColor: null,
+  version: 0,
   aiEnabled: false,
 
   selectPiece: (x: number, y: number) => {
@@ -46,17 +48,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   movePiece: (to: Position) => {
-    const { engine, selectedPiece, aiEnabled } = get();
+    const { engine, selectedPiece, version, aiEnabled } = get();
 
     if (!selectedPiece) return;
 
     const success = engine.makeMove(selectedPiece, to);
 
     if (success) {
+      // Increment version to force re-render
       set({
         selectedPiece: null,
         validMoves: [],
-        engine: engine // Trigger re-render by setting the same instance
+        version: version + 1,
       });
 
       if (aiEnabled && !engine.isGameOver().over && engine.currentPlayer === 'black') {
@@ -78,7 +81,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       engine: new ChineseChessEngine(),
       selectedPiece: null,
-      validMoves: []
+      validMoves: [],
+      version: 0,
     });
   },
 
