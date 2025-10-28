@@ -114,21 +114,31 @@ function Board() {
 
       {Array.from({ length: 9 }).map((_, x) => (
         <group key={`v-${x}`}>
-          {/* Top section */}
-          <mesh position={[x - 4, 0, 2.5]}>
-            <boxGeometry args={[0.02, 0.02, 5]} />
-            <meshStandardMaterial color="#3a2817" />
-          </mesh>
-          {/* Bottom section */}
-          <mesh position={[x - 4, 0, -2.5]}>
-            <boxGeometry args={[0.02, 0.02, 5]} />
-            <meshStandardMaterial color="#3a2817" />
-          </mesh>
+          {/* Outer columns (0 and 8) cross the river, middle columns (1-7) have a gap */}
+          {x === 0 || x === 8 ? (
+            <mesh position={[x - 4, 0, 0]}>
+              <boxGeometry args={[0.02, 0.02, 10]} />
+              <meshStandardMaterial color="#3a2817" />
+            </mesh>
+          ) : (
+            <>
+              {/* Top section - from y=0 to y=4 */}
+              <mesh position={[x - 4, 0, 2.75]}>
+                <boxGeometry args={[0.02, 0.02, 4.5]} />
+                <meshStandardMaterial color="#3a2817" />
+              </mesh>
+              {/* Bottom section - from y=5 to y=9 */}
+              <mesh position={[x - 4, 0, -2.75]}>
+                <boxGeometry args={[0.02, 0.02, 4.5]} />
+                <meshStandardMaterial color="#3a2817" />
+              </mesh>
+            </>
+          )}
         </group>
       ))}
 
       {/* Palace diagonals */}
-      {[4.5, -4.5].map((z) => (
+      {[3.5, -3.5].map((z) => (
         <group key={`palace-${z}`}>
           <mesh position={[0, 0, z]} rotation={[0, Math.PI / 4, 0]}>
             <boxGeometry args={[Math.sqrt(2) * 2, 0.02, 0.02]} />
